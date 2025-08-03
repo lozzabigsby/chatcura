@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react" // Import useEffect
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,12 +11,20 @@ import { Eye, EyeOff, Lock } from "lucide-react"
 import StudioDashboard from "./studio-dashboard"
 
 export default function StudioAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false) // Initialize to false
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+
+  // Check if already authenticated on component mount (client-side only)
+  useEffect(() => {
+    const authStatus = localStorage.getItem("studio_auth")
+    if (authStatus === "true") {
+      setIsAuthenticated(true)
+    }
+  }, []) // Empty dependency array ensures this runs once after initial render
 
   // Simple auth - in production, use proper authentication
   const handleLogin = async (e: React.FormEvent) => {
@@ -34,14 +42,6 @@ export default function StudioAuth() {
 
     setLoading(false)
   }
-
-  // Check if already authenticated
-  useState(() => {
-    const authStatus = localStorage.getItem("studio_auth")
-    if (authStatus === "true") {
-      setIsAuthenticated(true)
-    }
-  })
 
   if (isAuthenticated) {
     return <StudioDashboard />
