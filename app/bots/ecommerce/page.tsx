@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import EcommerceChatbotEmbed from "@/components/ecommerce-chatbot-embed"
 
 export default function EcommerceBotPage() {
   return (
@@ -17,8 +16,15 @@ export default function EcommerceBotPage() {
               </p>
             </div>
 
-            <div className="mb-12">
-              <EcommerceChatbotEmbed />
+            <div className="bg-card border border-border rounded-xl p-8 mb-12 min-h-[500px] flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-muted-foreground mb-4">
+                  Try asking about products, shipping, or returns using the chatbot in the bottom right corner!
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  The chatbot will help you experience how our e-commerce bot works.
+                </p>
+              </div>
             </div>
 
             <div className="text-center">

@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import HealthcareChatbotEmbed from "@/components/healthcare-chatbot-embed"
 
 export default function HealthcareBotPage() {
   return (
@@ -17,8 +16,16 @@ export default function HealthcareBotPage() {
               </p>
             </div>
 
-            <div className="mb-12">
-              <HealthcareChatbotEmbed />
+            <div className="bg-card border border-border rounded-xl p-8 mb-12 min-h-[500px] flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-muted-foreground mb-4">
+                  Try asking about services, scheduling an appointment, or getting care information using the chatbot in
+                  the bottom right corner!
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  The chatbot will help you experience how our healthcare bot works.
+                </p>
+              </div>
             </div>
 
             <div className="text-center">

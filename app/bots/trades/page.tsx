@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-import TradesChatbotEmbed from "@/components/trades-chatbot-embed"
 
 export default function TradesBotPage() {
   return (
@@ -17,8 +16,16 @@ export default function TradesBotPage() {
               </p>
             </div>
 
-            <div className="mb-12">
-              <TradesChatbotEmbed />
+            <div className="bg-card border border-border rounded-xl p-8 mb-12 min-h-[500px] flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-muted-foreground mb-4">
+                  Try asking about services, requesting a quote, or scheduling a visit using the chatbot in the bottom
+                  right corner!
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  The chatbot will help you experience how our trades bot works.
+                </p>
+              </div>
             </div>
 
             <div className="text-center">
