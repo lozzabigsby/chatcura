@@ -1,6 +1,7 @@
 import { Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 
 const pricingPlans = [
@@ -16,6 +17,7 @@ const pricingPlans = [
       "Email notifications",
       "Ongoing hosting and basic maintenance",
     ],
+    brandingStatus: "on",
     cta: "Get Started",
     ctaLink: "https://buy.stripe.com/test_28ocOSabQ0gh7eMaEE",
     popular: false,
@@ -32,25 +34,24 @@ const pricingPlans = [
       "Branded styling",
       "Priority support",
     ],
+    brandingStatus: "off",
     cta: "Time to Scale",
     ctaLink: "https://buy.stripe.com/test_5kAaGKbfU7IJ9mU7st",
     popular: true,
   },
   {
-    name: "💼 Pro",
+    name: "🔧 Custom Build",
     description: "For ecommerce, complex logic, multi-language, etc.",
-    setupPrice: "£749.99",
-    monthlyPrice: "£74.99",
     features: [
-      "Unlimited bots",
       "Advanced integrations",
       "Custom development",
       "Multi-language support",
       "Dedicated account manager",
       "Custom analytics dashboard",
     ],
-    cta: "Start Your Pro Build",
-    ctaLink: "https://dashboard.stripe.com/test/payment-links/plink_1RAGx0EQox91owJqWSiKV9bP",
+    brandingStatus: "off",
+    cta: "Contact Us",
+    ctaLink: "/contact",
     popular: false,
   },
 ]
@@ -89,17 +90,19 @@ export default function PricingPage() {
                 </CardHeader>
 
                 <CardContent className="space-y-6">
-                  <div>
-                    <div className="flex items-baseline">
-                      <span className="text-3xl font-bold">{plan.setupPrice}</span>
-                      <span className="text-muted-foreground ml-1">setup</span>
+                  {plan.setupPrice && (
+                    <div>
+                      <div className="flex items-baseline">
+                        <span className="text-3xl font-bold">{plan.setupPrice}</span>
+                        <span className="text-muted-foreground ml-1">setup</span>
+                      </div>
+                      <div className="flex items-baseline mt-1">
+                        <span className="text-xl font-semibold">+</span>
+                        <span className="text-2xl font-bold ml-2">{plan.monthlyPrice}</span>
+                        <span className="text-muted-foreground ml-1">/month</span>
+                      </div>
                     </div>
-                    <div className="flex items-baseline mt-1">
-                      <span className="text-xl font-semibold">+</span>
-                      <span className="text-2xl font-bold ml-2">{plan.monthlyPrice}</span>
-                      <span className="text-muted-foreground ml-1">/month</span>
-                    </div>
-                  </div>
+                  )}
 
                   <div className="space-y-3">
                     {plan.features.map((feature, i) => (
@@ -110,6 +113,26 @@ export default function PricingPage() {
                         <p className="ml-3 text-muted-foreground">{feature}</p>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Branding Status */}
+                  <div className="pt-4 border-t border-border/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Branding:</span>
+                      <Badge
+                        variant={plan.brandingStatus === "on" ? "secondary" : "default"}
+                        className={
+                          plan.brandingStatus === "on"
+                            ? "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"
+                            : "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        }
+                      >
+                        {plan.brandingStatus === "on" ? "🔖 Branding On" : "🟣 No Branding"}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {plan.brandingStatus === "on" ? "ChatCura branding displayed" : "Full white-label solution"}
+                    </p>
                   </div>
                 </CardContent>
 

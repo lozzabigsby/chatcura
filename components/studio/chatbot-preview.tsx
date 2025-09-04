@@ -21,6 +21,7 @@ interface BotConfig {
     widgetBackground: string
     chatBackground: string
   }
+  trainingDataContentPreview?: string | null // Added to potentially influence bot response
 }
 
 interface Message {
@@ -107,6 +108,9 @@ export default function ChatbotPreview({ config }: ChatbotPreviewProps) {
         return config.instructions.includes("emoji")
           ? "We're available 24/7 through this chat! 🕐 Our office hours are Monday-Friday, 9 AM to 6 PM."
           : "We're available 24/7 through this chat. Our office hours are Monday-Friday, 9 AM to 6 PM."
+      } else if (config.trainingDataContentPreview && input.includes("data")) {
+        // Simulate response based on training data presence
+        return `I have access to training data. Here's a snippet: "${config.trainingDataContentPreview.substring(0, 50)}..." How can I help you with this information?`
       } else {
         // Use fallback but consider instructions for tone
         if (config.instructions.includes("friendly") || config.instructions.includes("helpful")) {
@@ -125,6 +129,8 @@ export default function ChatbotPreview({ config }: ChatbotPreviewProps) {
       return "Our pricing varies depending on your needs. Would you like me to connect you with our sales team?"
     } else if (input.includes("hours") || input.includes("open")) {
       return "We're available 24/7 through this chat. Our office hours are Monday-Friday, 9 AM to 6 PM."
+    } else if (config.trainingDataContentPreview && input.includes("data")) {
+      return `I have access to training data. Here's a snippet: "${config.trainingDataContentPreview.substring(0, 50)}..."`
     } else {
       return config.fallbackMessage || "I'm sorry, I didn't understand that. Could you please rephrase?"
     }

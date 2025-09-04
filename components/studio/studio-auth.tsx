@@ -2,63 +2,56 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react" // Import useEffect
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Eye, EyeOff, Lock } from "lucide-react"
-import StudioDashboard from "./studio-dashboard"
 
-export default function StudioAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false) // Initialize to false
+interface StudioAuthProps {
+  onLoginSuccess: () => void
+}
+
+export default function StudioAuth({ onLoginSuccess }: StudioAuthProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Check if already authenticated on component mount (client-side only)
   useEffect(() => {
-    const authStatus = localStorage.getItem("studio_auth")
-    if (authStatus === "true") {
+    // Check localStorage for a token or authenticated state
+    // This is a client-side check and should be paired with server-side validation
+    const storedAuth = localStorage.getItem("chatcura_auth")
+    if (storedAuth === "true") {
       setIsAuthenticated(true)
+      onLoginSuccess()
     }
-  }, []) // Empty dependency array ensures this runs once after initial render
+  }, [onLoginSuccess])
 
-  // Simple auth - in production, use proper authentication
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError("")
 
-    // Simple hardcoded auth (replace with real auth in production)
-    if (email === "admin@chatcura.com" && password === "chatcura2024") {
+    // Simple client-side validation for demonstration purposes
+    if (email === "user@example.com" && password === "password") {
+      localStorage.setItem("chatcura_auth", "true")
       setIsAuthenticated(true)
-      localStorage.setItem("studio_auth", "true")
+      onLoginSuccess()
     } else {
-      setError("Invalid credentials")
+      setError("Invalid email or password.")
     }
-
-    setLoading(false)
   }
 
   if (isAuthenticated) {
-    return <StudioDashboard />
+    return null // Don't render anything if already authenticated
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-950">
       <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex items-center justify-center mb-4">
-            <Lock className="h-8 w-8 text-primary mr-2" />
-            <span className="text-2xl font-bold">
-              <span className="gradient-text">Chat</span>cura Studio
-            </span>
-          </div>
-          <CardTitle>Admin Access Required</CardTitle>
-          <CardDescription>This is a private chatbot builder tool for authorized users only.</CardDescription>
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-bold">Login to Chatcura Studio</CardTitle>
+          <CardDescription>Enter your credentials to access your chatbot dashboard.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -67,42 +60,28 @@ export default function StudioAuth() {
               <Input
                 id="email"
                 type="email"
-                placeholder="admin@chatcura.com"
+                placeholder="user@example.com"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-              </div>
+              <Input
+                id="password"
+                type="password"
+                placeholder="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
-            {error && <div className="text-sm text-red-500 text-center">{error}</div>}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Authenticating..." : "Access Studio"}
+            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+            <Button type="submit" className="w-full">
+              Login
             </Button>
           </form>
-          <div className="mt-6 text-center text-xs text-muted-foreground">
-            Private builder tool – Chatcura.com (Admin Access Only)
-          </div>
         </CardContent>
       </Card>
     </div>

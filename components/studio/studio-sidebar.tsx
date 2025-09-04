@@ -1,38 +1,49 @@
 "use client"
-
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
 import {
-  Activity,
-  BarChart3,
-  FileText,
-  Zap,
-  Users,
-  Share2,
-  Settings,
-  ChevronDown,
-  ChevronRight,
-  Play,
+  LayoutDashboard,
   MessageSquare,
-  UserPlus,
-  Hash,
-  Heart,
-  File,
-  Type,
-  Globe,
-  HelpCircle,
-  StickyNote,
-  Workflow,
-  Link,
+  Users,
+  FileText,
+  Bot,
   Code,
-  ExternalLink,
-  LogOut,
+  Share2,
+  Plug,
+  Zap,
+  Lightbulb,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarRail,
+  SidebarSeparator,
+  useSidebar,
+} from "@/components/ui/sidebar"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 type ActiveView =
-  | "playground"
+  | "analytics-overview"
   | "chat-logs"
   | "leads"
+  | "data-source"
+  | "actions"
+  | "deploy-integrations"
+  | "share-bot"
+  | "my-bots"
+  | "bot-editor"
+  | "help-center"
+  | "settings"
+  | "embed"
   | "chats"
   | "topics"
   | "sentiment"
@@ -44,185 +55,223 @@ type ActiveView =
   | "available-actions"
   | "integrations"
   | "contacts"
-  | "embed"
-  | "share"
-  | "deploy-integrations"
-  | "help-page"
-  | "settings"
 
 interface StudioSidebarProps {
   activeView: ActiveView
-  onViewChange: (view: ActiveView) => void
-  onLogout: () => void
+  onNavigate: (view: ActiveView, botId?: string) => void
 }
 
-export default function StudioSidebar({ activeView, onViewChange, onLogout }: StudioSidebarProps) {
-  const [expandedSections, setExpandedSections] = useState<string[]>([
-    "activity",
-    "analytics",
-    "sources",
-    "actions",
-    "deploy",
-  ])
-
-  const toggleSection = (section: string) => {
-    setExpandedSections((prev) => (prev.includes(section) ? prev.filter((s) => s !== section) : [...prev, section]))
-  }
-
-  const menuItems = [
-    {
-      id: "playground",
-      label: "Playground",
-      icon: Play,
-      view: "playground" as ActiveView,
-    },
-    {
-      id: "activity",
-      label: "Activity",
-      icon: Activity,
-      expandable: true,
-      children: [
-        { id: "chat-logs", label: "Chat logs", icon: MessageSquare, view: "chat-logs" as ActiveView },
-        { id: "leads", label: "Leads", icon: UserPlus, view: "leads" as ActiveView },
-      ],
-    },
-    {
-      id: "analytics",
-      label: "Analytics",
-      icon: BarChart3,
-      expandable: true,
-      children: [
-        { id: "chats", label: "Chats", icon: MessageSquare, view: "chats" as ActiveView },
-        { id: "topics", label: "Topics", icon: Hash, view: "topics" as ActiveView },
-        { id: "sentiment", label: "Sentiment", icon: Heart, view: "sentiment" as ActiveView },
-      ],
-    },
-    {
-      id: "sources",
-      label: "Sources",
-      icon: FileText,
-      expandable: true,
-      children: [
-        { id: "files", label: "Files", icon: File, view: "files" as ActiveView },
-        { id: "text", label: "Text", icon: Type, view: "text" as ActiveView },
-        { id: "website", label: "Website", icon: Globe, view: "website" as ActiveView },
-        { id: "qa", label: "Q&A", icon: HelpCircle, view: "qa" as ActiveView },
-        { id: "notion", label: "Notion", icon: StickyNote, view: "notion" as ActiveView },
-      ],
-    },
-    {
-      id: "actions",
-      label: "Actions",
-      icon: Zap,
-      expandable: true,
-      children: [
-        {
-          id: "available-actions",
-          label: "Available actions",
-          icon: Workflow,
-          view: "available-actions" as ActiveView,
-        },
-        { id: "integrations", label: "Integrations", icon: Link, view: "integrations" as ActiveView },
-      ],
-    },
-    {
-      id: "contacts",
-      label: "Contacts",
-      icon: Users,
-      view: "contacts" as ActiveView,
-    },
-    {
-      id: "deploy",
-      label: "Deploy",
-      icon: Share2,
-      expandable: true,
-      children: [
-        { id: "embed", label: "Embed", icon: Code, view: "embed" as ActiveView },
-        { id: "share", label: "Share", icon: ExternalLink, view: "share" as ActiveView },
-        { id: "deploy-integrations", label: "Integrations", icon: Link, view: "deploy-integrations" as ActiveView },
-        { id: "help-page", label: "Help page", icon: HelpCircle, view: "help-page" as ActiveView, badge: "Beta" },
-      ],
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: Settings,
-      view: "settings" as ActiveView,
-    },
-  ]
+export default function StudioSidebar({ activeView, onNavigate }: StudioSidebarProps) {
+  const { toggleSidebar } = useSidebar() // Use useSidebar hook
 
   return (
-    <div className="w-64 bg-card border-r border-border flex flex-col">
-      {/* Logo */}
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center">
-          <span className="text-xl font-bold">
-            <span className="gradient-text">Chat</span>cura
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">Studio</p>
-      </div>
+    <Sidebar collapsible="icon" variant="inset">
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton>
+                  Select Workspace
+                  <ChevronDown className="ml-auto" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[--radix-popper-anchor-width]">
+                <DropdownMenuItem>
+                  <span>Chatcura Inc</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <span>My Personal Workspace</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarSeparator />
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => onNavigate("analytics-overview")}
+                  isActive={activeView === "analytics-overview"}
+                >
+                  <LayoutDashboard />
+                  <span>Dashboard</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => onNavigate("chat-logs")} isActive={activeView === "chat-logs"}>
+                  <MessageSquare />
+                  <span>Chat Logs</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => onNavigate("leads")} isActive={activeView === "leads"}>
+                  <Users />
+                  <span>Leads</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-4 overflow-y-auto">
-        <div className="space-y-1">
-          {menuItems.map((item) => (
-            <div key={item.id}>
-              {/* Main Item */}
-              <Button
-                variant={activeView === item.view ? "default" : "ghost"}
-                className="w-full justify-start h-9 px-3"
-                onClick={() => {
-                  if (item.expandable) {
-                    toggleSection(item.id)
-                  } else if (item.view) {
-                    onViewChange(item.view)
-                  }
-                }}
-              >
-                <item.icon className="h-4 w-4 mr-3" />
-                <span className="flex-1 text-left">{item.label}</span>
-                {item.expandable &&
-                  (expandedSections.includes(item.id) ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  ))}
-              </Button>
-
-              {/* Children */}
-              {item.expandable && expandedSections.includes(item.id) && item.children && (
-                <div className="ml-4 mt-1 space-y-1">
-                  {item.children.map((child) => (
-                    <Button
-                      key={child.id}
-                      variant={activeView === child.view ? "default" : "ghost"}
-                      className="w-full justify-start h-8 px-3 text-sm"
-                      onClick={() => onViewChange(child.view)}
+        <SidebarGroup>
+          <SidebarGroupLabel>Bot Management</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => onNavigate("my-bots")} isActive={activeView === "my-bots"}>
+                  <Bot />
+                  <span>My Bots</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => onNavigate("bot-editor")} isActive={activeView === "bot-editor"}>
+                  <Lightbulb />
+                  <span>Bot Editor</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton
+                      isActive={["data-source", "files", "text", "website", "qa", "notion"].includes(activeView)}
                     >
-                      <child.icon className="h-3 w-3 mr-3" />
-                      <span className="flex-1 text-left">{child.label}</span>
-                      {child.badge && (
-                        <span className="bg-primary text-primary-foreground text-xs px-1.5 py-0.5 rounded">
-                          {child.badge}
-                        </span>
-                      )}
-                    </Button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </nav>
+                      <FileText />
+                      <span>Data Sources</span>
+                      <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          onClick={() => onNavigate("data-source")}
+                          isActive={activeView === "data-source"}
+                        >
+                          <span>Manage Sources</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton onClick={() => onNavigate("files")} isActive={activeView === "files"}>
+                          <span>Files</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton onClick={() => onNavigate("text")} isActive={activeView === "text"}>
+                          <span>Text</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton onClick={() => onNavigate("website")} isActive={activeView === "website"}>
+                          <span>Website</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton onClick={() => onNavigate("qa")} isActive={activeView === "qa"}>
+                          <span>Q&A</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton onClick={() => onNavigate("notion")} isActive={activeView === "notion"}>
+                          <span>Notion</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+              <Collapsible defaultOpen className="group/collapsible">
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton isActive={["actions", "available-actions"].includes(activeView)}>
+                      <Zap />
+                      <span>Actions</span>
+                      <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton onClick={() => onNavigate("actions")} isActive={activeView === "actions"}>
+                          <span>Manage Actions</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <SidebarMenuButton
+                          onClick={() => onNavigate("available-actions")}
+                          isActive={activeView === "available-actions"}
+                        >
+                          <span>Available Actions</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-      {/* Logout */}
-      <div className="p-4 border-t border-border">
-        <Button variant="outline" className="w-full justify-start bg-transparent" onClick={onLogout}>
-          <LogOut className="h-4 w-4 mr-3" />
-          Logout
-        </Button>
-      </div>
-    </div>
+        <SidebarGroup>
+          <SidebarGroupLabel>Deployment</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => onNavigate("embed")} isActive={activeView === "embed"}>
+                  <Code />
+                  <span>Embed Code</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => onNavigate("share-bot")} isActive={activeView === "share-bot"}>
+                  <Share2 />
+                  <span>Share Bot</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => onNavigate("deploy-integrations")}
+                  isActive={activeView === "deploy-integrations"}
+                >
+                  <Plug />
+                  <span>Integrations</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton>
+                  <Users /> Username
+                  <ChevronUp className="ml-auto" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="top" className="w-[--radix-popper-anchor-width]">
+                <DropdownMenuItem>
+                  <span>Account</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <span>Billing</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
+      <SidebarRail />
+    </Sidebar>
   )
 }

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   title: "Chatcura | AI-Powered Chatbot Solutions",
   description:
     "We design, build, and train AI chatbots that feel human—so you can automate support, sales, and engagement without losing the personal touch.",
-    generator: 'v0.dev'
+    generator: 'v0.app'
 }
 
 export default function RootLayout({

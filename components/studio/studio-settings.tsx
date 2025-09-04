@@ -32,11 +32,39 @@ export default function StudioSettings() {
       compactView: false,
       showPreviewByDefault: true,
     },
+    workspace: {
+      name: "Chatcura Inc",
+      contactEmail: "support@chatcura.com",
+      timezone: "America/New_York",
+    },
+    apiKeys: {
+      openaiApiKey: "",
+      stripeApiKey: "",
+    },
   })
 
   const handleSave = () => {
     localStorage.setItem("studio_settings", JSON.stringify(settings))
     alert("Settings saved successfully!")
+  }
+
+  const handleWorkspaceSave = () => {
+    const workspaceSettings = {
+      name: document.getElementById("workspace-name").value,
+      contactEmail: document.getElementById("contact-email").value,
+      timezone: document.getElementById("timezone").value,
+    }
+    setSettings((prev) => ({ ...prev, workspace: workspaceSettings }))
+    alert("Workspace settings saved successfully!")
+  }
+
+  const handleApiKeysSave = () => {
+    const apiKeysSettings = {
+      openaiApiKey: document.getElementById("openai-api-key").value,
+      stripeApiKey: document.getElementById("stripe-api-key").value,
+    }
+    setSettings((prev) => ({ ...prev, apiKeys: apiKeysSettings }))
+    alert("API keys saved successfully!")
   }
 
   return (
@@ -52,6 +80,8 @@ export default function StudioSettings() {
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          <TabsTrigger value="workspace">Workspace</TabsTrigger>
+          <TabsTrigger value="apiKeys">API Keys</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
@@ -295,6 +325,98 @@ export default function StudioSettings() {
                   }
                 />
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="workspace">
+          <Card>
+            <CardHeader>
+              <CardTitle>General Settings</CardTitle>
+              <CardDescription>Manage your workspace and account preferences.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="workspace-name">Workspace Name</Label>
+                <Input
+                  id="workspace-name"
+                  defaultValue={settings.workspace.name}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      workspace: { ...prev.workspace, name: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="contact-email">Contact Email</Label>
+                <Input
+                  id="contact-email"
+                  type="email"
+                  defaultValue={settings.workspace.contactEmail}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      workspace: { ...prev.workspace, contactEmail: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="timezone">Timezone</Label>
+                <Input
+                  id="timezone"
+                  defaultValue={settings.workspace.timezone}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      workspace: { ...prev.workspace, timezone: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <Button onClick={handleWorkspaceSave}>Save Changes</Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="apiKeys">
+          <Card>
+            <CardHeader>
+              <CardTitle>API Keys</CardTitle>
+              <CardDescription>Manage API keys for external integrations.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="openai-api-key">OpenAI API Key</Label>
+                <Input
+                  id="openai-api-key"
+                  type="password"
+                  placeholder="sk-********************"
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      apiKeys: { ...prev.apiKeys, openaiApiKey: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stripe-api-key">Stripe API Key</Label>
+                <Input
+                  id="stripe-api-key"
+                  type="password"
+                  placeholder="sk_live_********************"
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      apiKeys: { ...prev.apiKeys, stripeApiKey: e.target.value },
+                    }))
+                  }
+                />
+              </div>
+              <Button onClick={handleApiKeysSave}>Generate New Key</Button>
             </CardContent>
           </Card>
         </TabsContent>

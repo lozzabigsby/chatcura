@@ -1,344 +1,145 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { Download, Code, FileJson, Copy, ExternalLink } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Copy, Check } from "lucide-react"
 
 interface Bot {
   id: string
   name: string
-  description: string
-  status: "active" | "draft" | "paused"
+  embedCode: string
 }
 
-export default function ExportManager() {
+interface ExportManagerProps {
+  initialSelectedBotId?: string | null
+}
+
+export default function ExportManager({ initialSelectedBotId }: ExportManagerProps) {
   const [bots, setBots] = useState<Bot[]>([])
-  const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
-  const [exportType, setExportType] = useState<"iframe" | "script" | "json">("iframe")
+  const [selectedBotId, setSelectedBotId] = useState<string | undefined>(initialSelectedBotId || undefined)
+  const [embedCode, setEmbedCode] = useState("")
+  const [copySuccess, setCopySuccess] = useState(false)
 
   useEffect(() => {
     const savedBots = localStorage.getItem("chatcura_bots")
     if (savedBots) {
-      setBots(JSON.parse(savedBots))
+      const parsedBots: Bot[] = JSON.parse(savedBots)
+      setBots(parsedBots)
+
+      // If an initial bot ID is provided, select it. Otherwise, select the first bot.
+      if (initialSelectedBotId && parsedBots.some((bot) => bot.id === initialSelectedBotId)) {
+        setSelectedBotId(initialSelectedBotId)
+        const bot = parsedBots.find((b) => b.id === initialSelectedBotId)
+        setEmbedCode(bot?.embedCode || "")
+      } else if (parsedBots.length > 0) {
+        setSelectedBotId(parsedBots[0].id)
+        setEmbedCode(parsedBots[0].embedCode)
+      }
     }
-  }, [])
+  }, [initialSelectedBotId])
 
-  const generateIframeCode = (bot: Bot) => {
-    return `<iframe
-  src="https://chatcura.com/embed/${bot.id}"
-  width="400"
-  height="600"
-  frameborder="0"
-  style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);"
-  title="${bot.name}"
-></iframe>`
+  const handleBotSelect = (botId: string) => {
+    setSelectedBotId(botId)
+    const bot = bots.find((b) => b.id === botId)
+    setEmbedCode(bot?.embedCode || "")
+    setCopySuccess(false) // Reset copy success message
   }
 
-  const generateScriptCode = (bot: Bot) => {
-    return `<script>
-  (function() {
-    var chatbot = document.createElement('div');
-    chatbot.id = 'chatcura-widget-${bot.id}';
-    chatbot.style.position = 'fixed';
-    chatbot.style.bottom = '20px';
-    chatbot.style.right = '20px';
-    chatbot.style.zIndex = '9999';
-    document.body.appendChild(chatbot);
-    
-    var iframe = document.createElement('iframe');
-    iframe.src = 'https://chatcura.com/widget/${bot.id}';
-    iframe.style.width = '350px';
-    iframe.style.height = '500px';
-    iframe.style.border = 'none';
-    iframe.style.borderRadius = '10px';
-    iframe.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
-    chatbot.appendChild(iframe);
-  })();
-</script>`
-  }
-
-  const generateJsonExport = (bot: Bot) => {
-    const botConfig = {
-      id: bot.id,
-      name: bot.name,
-      description: bot.description,
-      status: bot.status,
-      exportedAt: new Date().toISOString(),
-      embedUrls: {
-        iframe: `https://chatcura.com/embed/${bot.id}`,
-        widget: `https://chatcura.com/widget/${bot.id}`,
-        api: `https://chatcura.com/api/chat/${bot.id}`,
-      },
-    }
-    return JSON.stringify(botConfig, null, 2)
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-    alert("Code copied to clipboard!")
-  }
-
-  const downloadFile = (content: string, filename: string, type: string) => {
-    const blob = new Blob([content], { type })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-
-  const getExportCode = () => {
-    if (!selectedBot) return ""
-
-    switch (exportType) {
-      case "iframe":
-        return generateIframeCode(selectedBot)
-      case "script":
-        return generateScriptCode(selectedBot)
-      case "json":
-        return generateJsonExport(selectedBot)
-      default:
-        return ""
-    }
-  }
-
-  const getFileExtension = () => {
-    switch (exportType) {
-      case "iframe":
-      case "script":
-        return "html"
-      case "json":
-        return "json"
-      default:
-        return "txt"
-    }
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(embedCode)
+    setCopySuccess(true)
+    setTimeout(() => setCopySuccess(false), 2000) // Reset after 2 seconds
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold mb-2">Export Manager</h2>
-        <p className="text-muted-foreground">Generate embed codes and export your chatbots</p>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bot Selection */}
-        <div className="space-y-4">
+      <h2 className="text-3xl font-bold">Export & Embed</h2>
+      <Tabs defaultValue="embed-code" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="embed-code">Embed Code</TabsTrigger>
+          <TabsTrigger value="customer-websites">Customer Websites</TabsTrigger>
+        </TabsList>
+        <TabsContent value="embed-code" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Select Bot to Export</CardTitle>
-              <CardDescription>Choose which chatbot you want to export</CardDescription>
+              <CardTitle>Embed Chatbot on Your Website</CardTitle>
+              <CardDescription>
+                Select a bot and copy the iframe code to embed it directly into your website.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              {bots.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No bots available for export</p>
-              ) : (
-                <div className="space-y-3">
-                  {bots.map((bot) => (
-                    <div
-                      key={bot.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        selectedBot?.id === bot.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                      onClick={() => setSelectedBot(bot)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium">{bot.name}</h4>
-                          <p className="text-sm text-muted-foreground">{bot.description}</p>
-                        </div>
-                        <Badge variant={bot.status === "active" ? "default" : "secondary"}>{bot.status}</Badge>
-                      </div>
-                    </div>
-                  ))}
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="select-bot">Select Bot to Embed</Label>
+                {bots.length > 0 ? (
+                  <Select value={selectedBotId} onValueChange={handleBotSelect}>
+                    <SelectTrigger id="select-bot">
+                      <SelectValue placeholder="Select a bot" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bots.map((bot) => (
+                        <SelectItem key={bot.id} value={bot.id}>
+                          {bot.name || `Untitled Bot (${bot.id.substring(0, 4)}...)`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <p className="text-muted-foreground">No bots available. Please create a bot first.</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="embed-code-textarea">Iframe Embed Code</Label>
+                <div className="relative">
+                  <Textarea
+                    id="embed-code-textarea"
+                    value={embedCode}
+                    readOnly
+                    rows={8}
+                    className="font-mono text-sm pr-12"
+                    placeholder="Select a bot to generate its embed code..."
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={copyToClipboard}
+                    disabled={!embedCode}
+                  >
+                    {copySuccess ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                    <span className="sr-only">Copy code</span>
+                  </Button>
                 </div>
-              )}
+                {copySuccess && <p className="text-sm text-green-500">Copied to clipboard!</p>}
+                <p className="text-sm text-muted-foreground">
+                  Copy and paste this code into your website's HTML where you want the chatbot to appear.
+                </p>
+              </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Export Options */}
-        <div className="space-y-4">
-          {selectedBot ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Export Options</CardTitle>
-                <CardDescription>Choose how you want to export {selectedBot.name}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs value={exportType} onValueChange={(value: any) => setExportType(value)}>
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="iframe">Iframe</TabsTrigger>
-                    <TabsTrigger value="script">Script</TabsTrigger>
-                    <TabsTrigger value="json">JSON</TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="iframe" className="space-y-4">
-                    <div>
-                      <h4 className="font-medium mb-2">Iframe Embed</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Embed as an iframe - perfect for websites and landing pages
-                      </p>
-                      <Textarea
-                        value={generateIframeCode(selectedBot)}
-                        readOnly
-                        className="font-mono text-xs"
-                        rows={8}
-                      />
-                      <div className="flex gap-2 mt-3">
-                        <Button size="sm" onClick={() => copyToClipboard(generateIframeCode(selectedBot))}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy Code
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            downloadFile(
-                              generateIframeCode(selectedBot),
-                              `${selectedBot.name}-iframe.html`,
-                              "text/html",
-                            )
-                          }
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="script" className="space-y-4">
-                    <div>
-                      <h4 className="font-medium mb-2">JavaScript Widget</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Floating widget that appears in the bottom-right corner
-                      </p>
-                      <Textarea
-                        value={generateScriptCode(selectedBot)}
-                        readOnly
-                        className="font-mono text-xs"
-                        rows={8}
-                      />
-                      <div className="flex gap-2 mt-3">
-                        <Button size="sm" onClick={() => copyToClipboard(generateScriptCode(selectedBot))}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy Code
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            downloadFile(
-                              generateScriptCode(selectedBot),
-                              `${selectedBot.name}-widget.html`,
-                              "text/html",
-                            )
-                          }
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="json" className="space-y-4">
-                    <div>
-                      <h4 className="font-medium mb-2">JSON Configuration</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Export bot configuration as JSON for backup or migration
-                      </p>
-                      <Textarea
-                        value={generateJsonExport(selectedBot)}
-                        readOnly
-                        className="font-mono text-xs"
-                        rows={8}
-                      />
-                      <div className="flex gap-2 mt-3">
-                        <Button size="sm" onClick={() => copyToClipboard(generateJsonExport(selectedBot))}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy JSON
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() =>
-                            downloadFile(
-                              generateJsonExport(selectedBot),
-                              `${selectedBot.name}-config.json`,
-                              "application/json",
-                            )
-                          }
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <Code className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Select a Bot</h3>
-                <p className="text-muted-foreground">Choose a bot from the left to generate export code</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-
-      {/* Export Instructions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Integration Instructions</CardTitle>
-          <CardDescription>How to use your exported chatbot code</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center mb-2">
-                <Code className="h-5 w-5 text-primary mr-2" />
-                <h4 className="font-medium">Iframe Method</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Paste the iframe code directly into your HTML. Best for simple integrations.
+        </TabsContent>
+        <TabsContent value="customer-websites" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Customer Websites</CardTitle>
+              <CardDescription>Manage where your bots are deployed.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                This section will list the websites where your chatbots are currently embedded.
               </p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center mb-2">
-                <ExternalLink className="h-5 w-5 text-primary mr-2" />
-                <h4 className="font-medium">Script Widget</h4>
+              {/* Placeholder for customer website list */}
+              <div className="mt-4 p-4 border rounded-md bg-muted/50 text-muted-foreground">
+                No customer websites added yet.
               </div>
-              <p className="text-sm text-muted-foreground">
-                Add the script tag to your website's HTML. Creates a floating chat widget.
-              </p>
-            </div>
-            <div className="p-4 border rounded-lg">
-              <div className="flex items-center mb-2">
-                <FileJson className="h-5 w-5 text-primary mr-2" />
-                <h4 className="font-medium">JSON Export</h4>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Use for backups, migrations, or custom integrations via API.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

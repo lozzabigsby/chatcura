@@ -1,234 +1,110 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Search, Download, Filter, MessageSquare, User, Bot } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-interface ChatLog {
-  id: string
-  sessionId: string
-  timestamp: string
-  userMessage: string
-  botResponse: string
-  sentiment: "positive" | "neutral" | "negative"
-  resolved: boolean
-  userId?: string
-}
+import { Button } from "@/components/ui/button"
+import { Search, Download, MessageSquare, User } from "lucide-react"
 
 export default function ChatLogs() {
-  const [logs, setLogs] = useState<ChatLog[]>([])
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterSentiment, setFilterSentiment] = useState<string>("all")
-  const [filterResolved, setFilterResolved] = useState<string>("all")
-
-  useEffect(() => {
-    // Load dummy chat logs
-    const dummyLogs: ChatLog[] = [
-      {
-        id: "1",
-        sessionId: "sess_001",
-        timestamp: "2024-01-20T10:30:00Z",
-        userMessage: "Hello, I need help with my order",
-        botResponse: "Hello! I'd be happy to help you with your order. Could you please provide your order number?",
-        sentiment: "neutral",
-        resolved: true,
-        userId: "user_123",
-      },
-      {
-        id: "2",
-        sessionId: "sess_001",
-        timestamp: "2024-01-20T10:31:00Z",
-        userMessage: "My order number is ORD-12345",
-        botResponse:
-          "Thank you! I can see your order ORD-12345. It was dispatched yesterday and should arrive tomorrow.",
-        sentiment: "positive",
-        resolved: true,
-        userId: "user_123",
-      },
-      {
-        id: "3",
-        sessionId: "sess_002",
-        timestamp: "2024-01-20T11:15:00Z",
-        userMessage: "Your service is terrible!",
-        botResponse:
-          "I'm sorry to hear you're having a poor experience. Let me connect you with a human agent who can help resolve this issue.",
-        sentiment: "negative",
-        resolved: false,
-        userId: "user_456",
-      },
-    ]
-    setLogs(dummyLogs)
-  }, [])
-
-  const filteredLogs = logs.filter((log) => {
-    const matchesSearch =
-      log.userMessage.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.botResponse.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesSentiment = filterSentiment === "all" || log.sentiment === filterSentiment
-    const matchesResolved =
-      filterResolved === "all" ||
-      (filterResolved === "resolved" && log.resolved) ||
-      (filterResolved === "unresolved" && !log.resolved)
-
-    return matchesSearch && matchesSentiment && matchesResolved
-  })
-
-  const getSentimentColour = (sentiment: string) => {
-    switch (sentiment) {
-      case "positive":
-        return "bg-green-500"
-      case "negative":
-        return "bg-red-500"
-      default:
-        return "bg-gray-500"
-    }
-  }
-
-  const exportLogs = () => {
-    const csvContent = [
-      ["ID", "Session ID", "Timestamp", "User Message", "Bot Response", "Sentiment", "Resolved"],
-      ...filteredLogs.map((log) => [
-        log.id,
-        log.sessionId,
-        log.timestamp,
-        log.userMessage,
-        log.botResponse,
-        log.sentiment,
-        log.resolved.toString(),
-      ]),
-    ]
-      .map((row) => row.join(","))
-      .join("\n")
-
-    const blob = new Blob([csvContent], { type: "text/csv" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = "chat-logs.csv"
-    a.click()
-  }
+  // Dummy data for chat logs
+  const chatLogs = [
+    {
+      id: "1",
+      user: "Alice Smith",
+      bot: "Support Bot",
+      lastMessage: "Thank you for your help!",
+      timestamp: "2024-07-20 14:30",
+      messages: [
+        { sender: "user", text: "Hi, I have a question about my order." },
+        { sender: "bot", text: "Hello Alice! What is your order number?" },
+        { sender: "user", text: "It's #12345." },
+        {
+          sender: "bot",
+          text: "Thank you. I see your order is being processed. Is there anything else I can help with?",
+        },
+        { sender: "user", text: "No, that's all. Thank you!" },
+      ],
+    },
+    {
+      id: "2",
+      user: "Bob Johnson",
+      bot: "Sales Bot",
+      lastMessage: "I'm interested in your premium plan.",
+      timestamp: "2024-07-19 10:15",
+      messages: [
+        { sender: "user", text: "Tell me about your pricing." },
+        { sender: "bot", text: "We have several plans. Are you interested in personal or business use?" },
+        { sender: "user", text: "Business." },
+        { sender: "bot", text: "Great! Our business plans start at $X/month. Would you like a detailed quote?" },
+        { sender: "user", text: "Yes, please. I'm interested in your premium plan." },
+      ],
+    },
+    {
+      id: "3",
+      user: "Charlie Brown",
+      bot: "FAQ Bot",
+      lastMessage: "Where can I find your return policy?",
+      timestamp: "2024-07-18 09:00",
+      messages: [
+        { sender: "user", text: "Return policy?" },
+        { sender: "bot", text: "Our return policy can be found on our website under the 'Support' section." },
+        { sender: "user", text: "Thanks!" },
+      ],
+    },
+  ]
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold">Chat Logs</h2>
-          <p className="text-muted-foreground">View and analyse all chat conversations</p>
-        </div>
-        <Button onClick={exportLogs}>
-          <Download className="h-4 w-4 mr-2" />
-          Export Logs
-        </Button>
-      </div>
-
-      {/* Filters */}
+      <h2 className="text-3xl font-bold">Chat Logs</h2>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Filter className="h-5 w-5 mr-2" />
-            Filters
-          </CardTitle>
+          <CardTitle>Recent Conversations</CardTitle>
+          <CardDescription>Review and analyze past chatbot interactions.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Search Messages</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search conversations..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+          <div className="flex items-center space-x-2 mb-4">
+            <Input placeholder="Search chat logs..." className="max-w-sm" />
+            <Button variant="outline">
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
+          <div className="space-y-4">
+            {chatLogs.map((log) => (
+              <div key={log.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <User className="h-4 w-4" />
+                    <span>{log.user}</span>
+                    <span className="text-muted-foreground">vs</span>
+                    <MessageSquare className="h-4 w-4" />
+                    <span>{log.bot}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{log.timestamp}</span>
+                </div>
+                <p className="text-sm text-muted-foreground line-clamp-1">Last message: {log.lastMessage}</p>
+                <details className="mt-2">
+                  <summary className="text-sm text-blue-600 cursor-pointer hover:underline">
+                    View Full Transcript
+                  </summary>
+                  <div className="mt-2 space-y-2 text-sm bg-gray-50 p-3 rounded-md">
+                    {log.messages.map((msg, index) => (
+                      <p
+                        key={index}
+                        className={msg.sender === "user" ? "text-right text-blue-800" : "text-left text-gray-800"}
+                      >
+                        <strong>{msg.sender === "user" ? "You" : log.bot}:</strong> {msg.text}
+                      </p>
+                    ))}
+                  </div>
+                </details>
               </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Sentiment</label>
-              <Select value={filterSentiment} onValueChange={setFilterSentiment}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Sentiments</SelectItem>
-                  <SelectItem value="positive">Positive</SelectItem>
-                  <SelectItem value="neutral">Neutral</SelectItem>
-                  <SelectItem value="negative">Negative</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
-              <Select value={filterResolved} onValueChange={setFilterResolved}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="resolved">Resolved</SelectItem>
-                  <SelectItem value="unresolved">Unresolved</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>
-
-      {/* Chat Logs */}
-      <div className="space-y-4">
-        {filteredLogs.length === 0 ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No chat logs found</h3>
-              <p className="text-muted-foreground">Try adjusting your filters or search terms</p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredLogs.map((log) => (
-            <Card key={log.id} className="card-hover">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">Session: {log.sessionId}</Badge>
-                    <Badge className={`${getSentimentColour(log.sentiment)} text-white`}>{log.sentiment}</Badge>
-                    <Badge variant={log.resolved ? "default" : "destructive"}>
-                      {log.resolved ? "Resolved" : "Unresolved"}
-                    </Badge>
-                  </div>
-                  <span className="text-sm text-muted-foreground">{new Date(log.timestamp).toLocaleString()}</span>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium mb-1">User</p>
-                      <p className="text-sm text-muted-foreground">{log.userMessage}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                      <Bot className="h-4 w-4" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium mb-1">Bot</p>
-                      <p className="text-sm text-muted-foreground">{log.botResponse}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
     </div>
   )
 }
